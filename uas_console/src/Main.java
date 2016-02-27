@@ -13,7 +13,7 @@ import java.util.Scanner;
  */
 public class Main {
 
-	private static File file = new File("Person3.txt");
+	private static File file = new File("Person.txt");
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40
 														// records
@@ -168,10 +168,10 @@ public class Main {
 				// out.println(" ,bucket string value = " + stt);
 				stt = new String(buckets[i]);
 
-				out.println((i + 18) + "--------------------------------");
+			//	out.println((i + 18) + "--------------------------------");
 				out.print(stt);
-				out.println();
-				out.println();
+			//	out.println();
+			//	out.println();
 			}
 
 			out.close();
@@ -198,11 +198,29 @@ public class Main {
 		readMyFile();
 
 		writeToIndexFile();
+		
 
 		System.out.println("Program terminated...");
 		long end = System.currentTimeMillis();
 
 		System.out.println("Time taken = " + (end - start) + " ms");
 
+		
+		Scanner sc = new Scanner(System.in);
+		System.out.println("1. Enter Age");
+		System.out.println("2. Enter Range Age");
+		int selectedOption = sc.nextInt();
+		switch(selectedOption){
+		case 1: 
+			
+			//	FIND(sc.nextInt());
+			
+			break;
+		case 2:
+			//asdasdasdasdad
+			break;
+		}
+		
+		
 	}
 }// END
