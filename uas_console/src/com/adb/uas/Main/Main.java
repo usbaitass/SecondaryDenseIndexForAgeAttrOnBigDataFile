@@ -1,11 +1,16 @@
 package com.adb.uas.Main;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Test class for various test codes to run
@@ -21,7 +26,7 @@ public class Main {
 														// records
 	private static String block;
 	private static int blockSearchKey = 1; // 4 bytes
-//	private static String sin;
+	// private static String sin;
 	private static int age = 0; // 4 bytes
 	private static byte[][] buckets = new byte[82][4000]; // 324 KB
 	private static int[] iBucket = new int[82]; // 4 x 81 = 324 bytes
@@ -31,6 +36,7 @@ public class Main {
 	private static int[] bucketBlockIndexSize = new int[82];
 	private static int blockPointer = 0;
 	private static int[] bPointerForBuckets = new int[82];
+	private static boolean firstTime = true;
 
 	private static String searchKeyHex;
 
@@ -73,9 +79,9 @@ public class Main {
 
 		for (int i = 0; i < 40; i++) {
 
-		//	sin = block.substring(i * 100 + 0, i * 100 + 9);
-			age = Integer.parseInt(block.substring(i * 100 + 39, i * 100 + 41))-18;
-		//	System.out.println("sin = " + sin + " age = " + age);
+			// sin = block.substring(i * 100 + 0, i * 100 + 9);
+			age = Integer.parseInt(block.substring(i * 100 + 39, i * 100 + 41)) - 18;
+			// System.out.println("sin = " + sin + " age = " + age);
 
 			InputSearchKeyIntoBucket();
 
@@ -98,56 +104,55 @@ public class Main {
 	 */
 	public static void InputSearchKeyIntoBucket() {
 
-			if (prevBlockIndex[age] != blockSearchKey) {
+		if (prevBlockIndex[age] != blockSearchKey) {
 
-				if (iBucket[age] > 4000 - bucketBlockIndexSize[age] - 1) {
-					freeBucket(age);
-				}
-
-				if (iBucket[age] == 0) {
-					String strAge = Integer.toString(age+18);
-					buckets[age][0] = (byte) strAge.charAt(0);
-					buckets[age][1] = (byte) strAge.charAt(1);
-
-					String strSize = Integer.toString(bucketBlockIndexSize[age]);
-					buckets[age][2] = (byte) strSize.charAt(0);
-
-					String strPointer = Integer.toHexString(blockPointer);
-
-					int d = strPointer.length();
-					for (int i = 0; i < 7 - d; i++) {
-						strPointer = '0' + strPointer;
-					}
-
-					buckets[age][3] = (byte) strPointer.charAt(0);
-					buckets[age][4] = (byte) strPointer.charAt(1);
-					buckets[age][5] = (byte) strPointer.charAt(2);
-					buckets[age][6] = (byte) strPointer.charAt(3);
-					buckets[age][7] = (byte) strPointer.charAt(4);
-					buckets[age][8] = (byte) strPointer.charAt(5);
-					buckets[age][9] = (byte) strPointer.charAt(6);
-
-					iBucket[age] += 10;
-				}
-
-				int i = 0;
-				for (; i < bucketBlockIndexSize[age] - searchKeyHex.length(); i++) {
-					byte b = ' ';
-					// System.out.println(iBucket[age-18]);
-					buckets[age][iBucket[age] + i] = b;
-				}
-
-				for (int j = 0; j < searchKeyHex.length(); j++) {
-					byte b = (byte) searchKeyHex.charAt(j);
-					buckets[age][iBucket[age] + i + j] = b;
-				}
-
-				iBucket[age] += bucketBlockIndexSize[age];
+			if (iBucket[age] > 4000 - bucketBlockIndexSize[age] - 1) {
+				freeBucket(age);
 			}
 
-			prevBlockIndex[age] = blockSearchKey;
+			if (iBucket[age] == 0) {
+				String strAge = Integer.toString(age + 18);
+				buckets[age][0] = (byte) strAge.charAt(0);
+				buckets[age][1] = (byte) strAge.charAt(1);
 
-	
+				String strSize = Integer.toString(bucketBlockIndexSize[age]);
+				buckets[age][2] = (byte) strSize.charAt(0);
+
+				String strPointer = Integer.toHexString(blockPointer);
+
+				int d = strPointer.length();
+				for (int i = 0; i < 7 - d; i++) {
+					strPointer = '0' + strPointer;
+				}
+
+				buckets[age][3] = (byte) strPointer.charAt(0);
+				buckets[age][4] = (byte) strPointer.charAt(1);
+				buckets[age][5] = (byte) strPointer.charAt(2);
+				buckets[age][6] = (byte) strPointer.charAt(3);
+				buckets[age][7] = (byte) strPointer.charAt(4);
+				buckets[age][8] = (byte) strPointer.charAt(5);
+				buckets[age][9] = (byte) strPointer.charAt(6);
+
+				iBucket[age] += 10;
+			}
+
+			int i = 0;
+			for (; i < bucketBlockIndexSize[age] - searchKeyHex.length(); i++) {
+				byte b = ' ';
+				// System.out.println(iBucket[age-18]);
+				buckets[age][iBucket[age] + i] = b;
+			}
+
+			for (int j = 0; j < searchKeyHex.length(); j++) {
+				byte b = (byte) searchKeyHex.charAt(j);
+				buckets[age][iBucket[age] + i + j] = b;
+			}
+
+			iBucket[age] += bucketBlockIndexSize[age];
+		}
+
+		prevBlockIndex[age] = blockSearchKey;
+
 	}
 
 	/**
@@ -162,11 +167,11 @@ public class Main {
 			stt = new String(buckets[bucketNumber]);
 
 			out.print(stt);
-			//out.println();
-			//out.println();
+			// out.println();
+			// out.println();
 
 		} catch (Exception e) {
-			System.out.println("Error writing file inside freeBucket().");
+			System.out.println("Error inside freeBucket().");
 		}
 
 		for (int i = 0; i < 4000; i++) {
@@ -175,7 +180,7 @@ public class Main {
 
 		iBucket[bucketNumber] = 0;
 
-	//	System.out.println("blockPointer");
+		// System.out.println("blockPointer");
 		bPointerForBuckets[age] = blockPointer;
 		blockPointer++;
 
@@ -197,57 +202,116 @@ public class Main {
 
 				// out.println((i + 18) + "--------------------------------");
 				out.print(stt);
-				//out.println();
-				//out.println();
+				// out.println();
+				// out.println();
 			}
 
 			out.close();
 		} catch (Exception e) {
-			System.out.println("error in writing to file inside writeToIndexFile().");
+			System.out.println("error inside writeToIndexFile().");
 
 		}
 
 	}
-	
-	
-	public static void findRecord(int new_age){
-		
-		try{
-			
-			File file = new File("IndexFile.txt");
-	
+
+	public static byte[] findBlock(int new_index, String new_filename) {
+
+		byte[] blockX = new byte[4000];
+		try {
+
+			File file = new File(new_filename);
+
 			RandomAccessFile raf = new RandomAccessFile(file, "r");
 
-			// Seek to the end of file
 			int n = 4000;
-			System.out.println("n= "+ n);
-			System.out.println(file.length());
-			raf.seek(file.length() - n);
-			// Read it out.
-			byte[] blockX = new byte[4000];
-			raf.read(blockX);
-			
-			
-			System.out.println("for sajjad specially "+ new String(blockX).length());
-			
-/*			fin = new FileInputStream(file);
-			byte[] blockX = new byte[4000];
-			
-			while ((fin.read(blockX)) != -1) { // we read ONE BLOCK at a time
+			// System.out.println("n= " + n);
+			// System.out.println(file.length());
+			if (new_filename == "IndexFile.txt") {
+				raf.seek(file.length() - (100 - new_index) * n); // seek given
+																	// block
+			} else {
+				raf.seek((new_index - 1) * n);
+			}
 
-				System.out.println(new String(blockX));
-				System.out.println();
-			
-//				 break;
+			raf.read(blockX); // read given block
+
+			raf.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("error inside findRecord()");
+		}
+		return blockX;
+	}
+
+	public static void findAllBlocksForAge(int new_age) {
+
+		String strB = new String(findBlock(new_age, "IndexFile.txt"));
+		// System.out.println(strB);
+
+		if (new_age == Integer.parseInt(strB.substring(0, 2))) {
+
+			// System.out.println("YES");
+
+			int i = Integer.parseInt(strB.substring(2, 3));
+
+			// System.out.println(i);
+
+			int j = 10;
+			while (j < 4000 - 10) {
+
+				// System.out.println(strB.substring(j, j+i));
+
+				try {
+
+					String a = strB.substring(j, j + i);
+
+					int c = i;
+					for (int b = 0; b < c;) {
+						if (a.charAt(b) == ' ') {
+							a = a.substring(1, c);
+							c--;
+						} else {
+							break;
+						}
+					}
+					// System.out.print(a);
+
+					int x = Integer.parseInt(a, 16);
+
+					//System.out.println(x);
+
+					String bytesAsString = new String(findBlock(x, "Person.txt"), StandardCharsets.UTF_8);
+					Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
+					Matcher matcher = pattern.matcher(bytesAsString);
+
+					if(firstTime){
+						System.out.println("SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
+						System.out.println("-----------------------------------------------------------------------------------------------------------");
+						firstTime = false;
+					}
+					while (matcher.find()) {
+						if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
+							System.out.print(matcher.group(1));
+							System.out.print("  "+ matcher.group(2));
+							System.out.print("  "+ matcher.group(3));
+							System.out.print("  "+ matcher.group(4));
+							System.out.print("   "+ matcher.group(5));
+							System.out.println("     "+ matcher.group(6));
+						}
+					}
+
+					//System.exit(0);
+
+				} catch (Exception e) {
+				//	System.out.println("error inside findAllBlocksForAge()");
+				}
+
+				j = j + i;
 
 			}
-*/			
-			
-		}catch(Exception e){
-			e.printStackTrace();
-			System.out.println("inside findRecord()");
+
 		}
-		
+
 	}
 
 	/**
@@ -267,9 +331,6 @@ public class Main {
 		for (int i = 0; i <= 81; i++) {
 			bucketBlockIndexSize[i] = 3;
 		}
-		
-		
-		
 
 		readMyFile();
 
@@ -280,29 +341,21 @@ public class Main {
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
 
-		 Scanner sc = new Scanner(System.in);
-		// System.out.println("1. Enter Age");
-		// System.out.println("2. Enter Range Age");
-		 int selectedOption = sc.nextInt();
-		 
-		 findRecord(selectedOption);
-		 
-		// switch(selectedOption){
-		// case 1:
+		Scanner sc = new Scanner(System.in);
+		System.out.println("1. Enter Age");
+		System.out.println("2. Enter Range Age");
+		int selectedOption = sc.nextInt();
 
-		// FIND(sc.nextInt());
-
-		// break;
-		// case 2:
-		// asdasdasdasdad
-		// break;
-		// }
+		switch (selectedOption) {
+		case 1:
+			System.out.print("Enter the age: ");
+			findAllBlocksForAge(sc.nextInt());
+			break;
+		case 2:
+			break;
+		}
 
 		System.out.println("Program terminated...");
-		
-		
-		
-		
 
 	}
 }// END
