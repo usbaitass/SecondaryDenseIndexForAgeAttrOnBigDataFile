@@ -2,6 +2,7 @@ package com.adb.uas.Main;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -14,7 +15,7 @@ import java.util.Scanner;
  */
 public class Main {
 
-	private static File file = new File("Person3.txt");
+	private static File file = new File("Person.txt");
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40
 														// records
@@ -161,8 +162,8 @@ public class Main {
 			stt = new String(buckets[bucketNumber]);
 
 			out.print(stt);
-			out.println();
-			out.println();
+			//out.println();
+			//out.println();
 
 		} catch (Exception e) {
 			System.out.println("Error writing file inside freeBucket().");
@@ -196,8 +197,8 @@ public class Main {
 
 				// out.println((i + 18) + "--------------------------------");
 				out.print(stt);
-				out.println();
-				out.println();
+				//out.println();
+				//out.println();
 			}
 
 			out.close();
@@ -206,6 +207,47 @@ public class Main {
 
 		}
 
+	}
+	
+	
+	public static void findRecord(int new_age){
+		
+		try{
+			
+			File file = new File("IndexFile.txt");
+	
+			RandomAccessFile raf = new RandomAccessFile(file, "r");
+
+			// Seek to the end of file
+			int n = 4000;
+			System.out.println("n= "+ n);
+			System.out.println(file.length());
+			raf.seek(file.length() - n);
+			// Read it out.
+			byte[] blockX = new byte[4000];
+			raf.read(blockX);
+			
+			
+			System.out.println("for sajjad specially "+ new String(blockX).length());
+			
+/*			fin = new FileInputStream(file);
+			byte[] blockX = new byte[4000];
+			
+			while ((fin.read(blockX)) != -1) { // we read ONE BLOCK at a time
+
+				System.out.println(new String(blockX));
+				System.out.println();
+			
+//				 break;
+
+			}
+*/			
+			
+		}catch(Exception e){
+			e.printStackTrace();
+			System.out.println("inside findRecord()");
+		}
+		
 	}
 
 	/**
@@ -238,10 +280,13 @@ public class Main {
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
 
-		// Scanner sc = new Scanner(System.in);
+		 Scanner sc = new Scanner(System.in);
 		// System.out.println("1. Enter Age");
 		// System.out.println("2. Enter Range Age");
-		// int selectedOption = sc.nextInt();
+		 int selectedOption = sc.nextInt();
+		 
+		 findRecord(selectedOption);
+		 
 		// switch(selectedOption){
 		// case 1:
 
