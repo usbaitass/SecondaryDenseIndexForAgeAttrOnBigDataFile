@@ -17,10 +17,11 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	private static String fileNameData = "Person.txt";
+	private static String fileNameData = "Person2.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
-	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40													// records
+	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40 //
+														// records
 	private static String block;
 	private static int blockSearchKey = 1; // 4 bytes
 	// private static String sin;
@@ -35,6 +36,8 @@ public class Main {
 	private static int[] bPointerForBuckets = new int[82];
 	private static boolean firstTime = true;
 	private static String searchKeyHex;
+	private static int counter = 0;
+	private static RandomAccessFile raf;
 
 	/**
 	 * reads the data from a file.
@@ -163,102 +166,100 @@ public class Main {
 	 */
 	public static void writeToIndexFile() {
 		try {
+			PrintWriter out2 = new PrintWriter("indexFileZERO.txt");
+			
 			for (int i = 0; i <= 81; i++) {
 				stt = new String(buckets[i]);
-				out.print(stt);
+				out2.print(stt);
 			}
-			out.close();
+			out2.close();
 		} catch (Exception e) {
 			System.out.println("error inside writeToIndexFile().");
 		}
 	}
-/**
- * 
- * @param new_age
- */
+
+	/**
+	 * 
+	 * @param new_age
+	 */
 	public static void findAllBlocksForAge(int new_age) {
 
-		String strB = new String(findBlock(new_age, "IndexFile.txt"));
-		int counter = 0;
-
-		// System.out.println(strB);
-
-		if (new_age == Integer.parseInt(strB.substring(0, 2))) {
-
-			// System.out.println("YES");
-
-			int indexSize = Integer.parseInt(strB.substring(2, 3));
-
-			// System.out.println(i);
+		int index = new_age - 18;
+		
+		// check if the bucket for a certain age has any records.
+		if (buckets[index].length > 0 && buckets[index][0] != 0){
 			
+			System.out.println("xyz");
 			
-			String strPointer = strB.substring(3, 10);
+			String tempStrBlock = new String(buckets[index]);
 			
-			System.out.println("Pointer fetched = "+ strPointer);
+			System.out.println(tempStrBlock);
 			
+			String strPointer = tempStrBlock.substring(3, 10);
 			
+			System.out.println(strPointer);
 			
+			if(strPointer.compareTo("0000000") ==0){
+				System.out.println("END HERE");
+	//			readBlockIndexesFromBucket(buckets[index], new_age);
+			}else{
+				System.out.println("START HERE");
+				
+				
+				System.out.println(recursiveMethod(decodePointer(strPointer), new_age));
 
-			int j = 10;
-			while (j < 4000 - indexSize) {
-
-				// System.out.println(strB.substring(j, j+i));
-
-				try {
-					String a = strB.substring(j, j + indexSize);
-
-					int c = indexSize;
-					for (int b = 0; b < c;) {
-						if (a.charAt(b) == ' ') {
-							a = a.substring(1, c);
-							c--;
-						} else {
-							break;
-						}
-					}
-					// System.out.print(a);
-
-					int x = Integer.parseInt(a, 16);
-
-					// System.out.println(x);
-
-					String bytesAsString = new String(findBlock(x, fileNameData), StandardCharsets.UTF_8);
-					Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
-					Matcher matcher = pattern.matcher(bytesAsString);
-
-					if (firstTime) {
-						System.out.println("SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
-						System.out.println(
-								"-----------------------------------------------------------------------------------------------------------");
-						firstTime = false;
-					}
-					while (matcher.find()) {
-						if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
-							counter++;
-							System.out.print(matcher.group(1));
-							System.out.print("  " + matcher.group(2));
-							System.out.print("  " + matcher.group(3));
-							System.out.print("  " + matcher.group(4));
-							System.out.print("   " + matcher.group(5));
-							System.out.println("     " + matcher.group(6));
-						}
-					}
-
-					// System.exit(0);
-
-				} catch (Exception e) {
-					// System.out.println("error inside findAllBlocksForAge()");
-				}
-
-				j = j + indexSize;
-
+				
 			}
-
+			
+			
+		}else{
+			System.out.println("There are no records with age "+ new_age +" in the file.");
 		}
-		System.out.println("There are " + counter + " people with age " + (new_age) + ".");
-
+		
 	}
 
+	
+	public static boolean recursiveMethod(int block_index, int new_age){
+
+		
+		byte[] block = findBlock(block_index, "IndexFile.txt");
+		
+		System.out.println(new String(block));
+		
+		readBlockIndexesFromBucket(block, new_age);
+			
+		return true;
+		
+	}
+	
+	
+	public static void readBlockIndexesFromBucket(byte[] block, int new_age){
+		
+		String strB = new String(block);
+		int indexSize = Integer.parseInt(strB.substring(2, 3));
+
+		int j = 10;
+		while (j < 4000 - indexSize) {
+			try {
+				int x = decodePointer(strB.substring(j, j + indexSize));
+
+				readRecordsFromBlock(x, new_age);
+			} catch (Exception e) {
+				// System.out.println("error inside
+				// findAllBlocksForAge()");
+			}
+
+			j = j + indexSize;
+
+		}
+
+		
+		
+	}
+	
+	
+	
+	
 	/**
 	 * @param new_index
 	 * @param new_filename
@@ -267,16 +268,11 @@ public class Main {
 	public static byte[] findBlock(int new_index, String new_filename) {
 		byte[] blockX = new byte[4000];
 		try {
-			File file = new File(new_filename);
-			RandomAccessFile raf = new RandomAccessFile(file, "r");
+			file = new File(new_filename);
+			raf = new RandomAccessFile(file, "r");
 			int n = 4000;
-			// System.out.println("n= " + n);
-			// System.out.println(file.length());
-			if (new_filename == "IndexFile.txt") {
-				raf.seek(file.length() - (100 - new_index) * n);
-			} else {
-				raf.seek((new_index - 1) * n);
-			}
+			
+			raf.seek((new_index - 1) * n);
 			raf.read(blockX); // read given block
 			raf.close();
 		} catch (Exception e) {
@@ -285,6 +281,52 @@ public class Main {
 		}
 		return blockX;
 	}
+	
+	
+	public static int decodePointer(String new_pointer){
+		String a = new_pointer;
+		int c = new_pointer.length();
+		for (int b = 0; b < c;) {
+			if (a.charAt(b) == '0' || a.charAt(b) == ' ') {
+				a = a.substring(1, c);
+				c--;
+			} else {
+				break;
+			}
+		}
+		return Integer.parseInt(a, 16);
+	}
+	
+	
+	public static void readRecordsFromBlock(int pos, int new_age){
+		String bytesAsString = new String(findBlock(pos, fileNameData), StandardCharsets.UTF_8);
+		Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
+		Matcher matcher = pattern.matcher(bytesAsString);
+
+		if (firstTime) {
+			System.out.println(
+					"N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
+			System.out.println(
+					"-----------------------------------------------------------------------------------------------------------");
+			firstTime = false;
+		}
+		while (matcher.find()) {
+			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
+				counter++;
+				System.out.print(counter + ". ");
+				System.out.print(matcher.group(1));
+				System.out.print("  " + matcher.group(2));
+				System.out.print("  " + matcher.group(3));
+				System.out.print("  " + matcher.group(4));
+				System.out.print("   " + matcher.group(5));
+				System.out.println("     " + matcher.group(6));
+			}
+		}
+
+		
+	}
+	
+	
 
 	/**
 	 * Main Method which initiates the program
@@ -304,6 +346,7 @@ public class Main {
 		}
 		readMyFile();
 		writeToIndexFile();
+		out.close();
 		long end = System.currentTimeMillis();
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
