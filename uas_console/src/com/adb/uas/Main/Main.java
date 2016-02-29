@@ -1,8 +1,9 @@
 package com.adb.uas.Main;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 /**
@@ -13,19 +14,22 @@ import java.util.Scanner;
  */
 public class Main {
 
-	private static File file = new File("Person.txt");
+	private static File file = new File("Person3.txt");
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40
 														// records
 	private static String block;
 	private static int blockSearchKey = 1; // 4 bytes
-	// private static String sin;
-	private static int age; // 4 bytes
-	private static byte[][] buckets = new byte[81][4000]; // 324 KB
-	private static int[] iBucket = new int[81]; // 4 x 81 = 324 bytes
-	private static int[] prevBlockIndex = new int[81]; // 4 x 81 = 324 bytes
+//	private static String sin;
+	private static int age = 0; // 4 bytes
+	private static byte[][] buckets = new byte[82][4000]; // 324 KB
+	private static int[] iBucket = new int[82]; // 4 x 81 = 324 bytes
+	private static int[] prevBlockIndex = new int[82]; // 4 x 81 = 324 bytes
 	private static PrintWriter out;
 	private static String stt;
+	private static int[] bucketBlockIndexSize = new int[82];
+	private static int blockPointer = 0;
+	private static int[] bPointerForBuckets = new int[82];
 
 	private static String searchKeyHex;
 
@@ -68,9 +72,9 @@ public class Main {
 
 		for (int i = 0; i < 40; i++) {
 
-			// sin = block.substring(i * 100 + 0, i * 100 + 9);
-			age = Integer.parseInt(block.substring(i * 100 + 39, i * 100 + 41));
-			// System.out.println("sin = " + sin + " age = " + age);
+		//	sin = block.substring(i * 100 + 0, i * 100 + 9);
+			age = Integer.parseInt(block.substring(i * 100 + 39, i * 100 + 41))-18;
+		//	System.out.println("sin = " + sin + " age = " + age);
 
 			InputSearchKeyIntoBucket();
 
@@ -93,38 +97,56 @@ public class Main {
 	 */
 	public static void InputSearchKeyIntoBucket() {
 
-		try {
-			if (prevBlockIndex[age - 18] != blockSearchKey) { // exclude
-																// repetition
-																// from bucket
+			if (prevBlockIndex[age] != blockSearchKey) {
 
-				// System.out.println("HERE = "+ iBucket[age-18]);
-				if (iBucket[age - 18] > 3996) {
-					freeBucket(age - 18);
+				if (iBucket[age] > 4000 - bucketBlockIndexSize[age] - 1) {
+					freeBucket(age);
 				}
+
+				if (iBucket[age] == 0) {
+					String strAge = Integer.toString(age+18);
+					buckets[age][0] = (byte) strAge.charAt(0);
+					buckets[age][1] = (byte) strAge.charAt(1);
+
+					String strSize = Integer.toString(bucketBlockIndexSize[age]);
+					buckets[age][2] = (byte) strSize.charAt(0);
+
+					String strPointer = Integer.toHexString(blockPointer);
+
+					int d = strPointer.length();
+					for (int i = 0; i < 7 - d; i++) {
+						strPointer = '0' + strPointer;
+					}
+
+					buckets[age][3] = (byte) strPointer.charAt(0);
+					buckets[age][4] = (byte) strPointer.charAt(1);
+					buckets[age][5] = (byte) strPointer.charAt(2);
+					buckets[age][6] = (byte) strPointer.charAt(3);
+					buckets[age][7] = (byte) strPointer.charAt(4);
+					buckets[age][8] = (byte) strPointer.charAt(5);
+					buckets[age][9] = (byte) strPointer.charAt(6);
+
+					iBucket[age] += 10;
+				}
+
 				int i = 0;
-				for (; i < 3 - searchKeyHex.length(); i++) {
+				for (; i < bucketBlockIndexSize[age] - searchKeyHex.length(); i++) {
 					byte b = ' ';
 					// System.out.println(iBucket[age-18]);
-					buckets[age - 18][iBucket[age - 18] + i] = b;
+					buckets[age][iBucket[age] + i] = b;
 				}
 
 				for (int j = 0; j < searchKeyHex.length(); j++) {
 					byte b = (byte) searchKeyHex.charAt(j);
-					buckets[age - 18][iBucket[age - 18] + i + j] = b;
+					buckets[age][iBucket[age] + i + j] = b;
 				}
 
-				iBucket[age - 18] += 3;
+				iBucket[age] += bucketBlockIndexSize[age];
 			}
 
-			prevBlockIndex[age - 18] = blockSearchKey;
+			prevBlockIndex[age] = blockSearchKey;
 
-		} catch (Exception e) {
-			System.out.println("HERE = " + age);
-			System.out.println("iBucket = " + iBucket[age - 18]);
-			System.exit(0);
-		}
-
+	
 	}
 
 	/**
@@ -141,7 +163,7 @@ public class Main {
 			out.print(stt);
 			out.println();
 			out.println();
-			
+
 		} catch (Exception e) {
 			System.out.println("Error writing file inside freeBucket().");
 		}
@@ -151,6 +173,10 @@ public class Main {
 		}
 
 		iBucket[bucketNumber] = 0;
+
+	//	System.out.println("blockPointer");
+		bPointerForBuckets[age] = blockPointer;
+		blockPointer++;
 
 	}
 
@@ -162,16 +188,16 @@ public class Main {
 		try {
 
 			int i;
-			for (i = 0; i < 81; i++) {
+			for (i = 0; i <= 81; i++) {
 				// out.print("bucket " + (i + 18) + " = " + buckets[i]);
 				// String stt = new String(buckets[i]);
 				// out.println(" ,bucket string value = " + stt);
 				stt = new String(buckets[i]);
 
-			//	out.println((i + 18) + "--------------------------------");
+				// out.println((i + 18) + "--------------------------------");
 				out.print(stt);
-			//	out.println();
-			//	out.println();
+				out.println();
+				out.println();
 			}
 
 			out.close();
@@ -195,32 +221,43 @@ public class Main {
 		} catch (Exception e) {
 			System.out.println("Error in writing file inside main.");
 		}
-		readMyFile();
 
-		writeToIndexFile();
-		
-
-		System.out.println("Program terminated...");
-		long end = System.currentTimeMillis();
-
-		System.out.println("Time taken = " + (end - start) + " ms");
-
-		
-		Scanner sc = new Scanner(System.in);
-		System.out.println("1. Enter Age");
-		System.out.println("2. Enter Range Age");
-		int selectedOption = sc.nextInt();
-		switch(selectedOption){
-		case 1: 
-			
-			//	FIND(sc.nextInt());
-			
-			break;
-		case 2:
-			//asdasdasdasdad
-			break;
+		for (int i = 0; i <= 81; i++) {
+			bucketBlockIndexSize[i] = 3;
 		}
 		
 		
+		
+
+		readMyFile();
+
+		writeToIndexFile();
+
+		long end = System.currentTimeMillis();
+
+		System.out.println("Index File has been constructed...");
+		System.out.println("Time taken = " + (end - start) + " ms");
+
+		// Scanner sc = new Scanner(System.in);
+		// System.out.println("1. Enter Age");
+		// System.out.println("2. Enter Range Age");
+		// int selectedOption = sc.nextInt();
+		// switch(selectedOption){
+		// case 1:
+
+		// FIND(sc.nextInt());
+
+		// break;
+		// case 2:
+		// asdasdasdasdad
+		// break;
+		// }
+
+		System.out.println("Program terminated...");
+		
+		
+		
+		
+
 	}
 }// END
