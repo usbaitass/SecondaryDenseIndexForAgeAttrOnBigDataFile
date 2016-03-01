@@ -334,9 +334,6 @@ public class Main {
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
 		Scanner sc = new Scanner(System.in);
-		System.out.println("1. Enter Age : ");
-		System.out.println("2. Enter Range Age : ");
-		System.out.println("3. Enter Age For Average Salary : ");
 		System.out.println("1. Enter Age:");
 		System.out.println("2. Enter Range Age:");
 		System.out.println("3. Output average salaries for all group ages.");
