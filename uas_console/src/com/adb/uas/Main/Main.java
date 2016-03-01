@@ -36,6 +36,8 @@ public class Main {
 	private static String searchKeyHex;
 	private static int countPeople = 0;
 	private static RandomAccessFile raf;
+	private static long yearlyIncomeSum = 0;
+	private static int gSelectedOption = 0;
 
 	/**
 	 * reads the data from a file.
@@ -193,6 +195,7 @@ public class Main {
 		} else {
 			System.out.println("There are no records with age " + new_age + " in the file.");
 		}
+
 	}
 
 	/**
@@ -297,13 +300,17 @@ public class Main {
 		while (matcher.find()) {
 			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
 				countPeople++;
-				System.out.print(countPeople + ". ");
-				System.out.print(matcher.group(1));
-				System.out.print("  " + matcher.group(2));
-				System.out.print("  " + matcher.group(3));
-				System.out.print("  " + matcher.group(4));
-				System.out.print("   " + matcher.group(5));
-				System.out.println("     " + matcher.group(6));
+				if (gSelectedOption == 1) {
+					System.out.print(countPeople + ". ");
+					System.out.print(matcher.group(1));
+					System.out.print("  " + matcher.group(2));
+					System.out.print("  " + matcher.group(3));
+					System.out.print("  " + matcher.group(4));
+					System.out.print("   " + matcher.group(5));
+					System.out.println("     " + matcher.group(6));
+				} else if (gSelectedOption == 3) {
+					yearlyIncomeSum += Integer.parseInt(matcher.group(5));
+				}
 			}
 		}
 
@@ -360,6 +367,12 @@ public class Main {
 			}
 			break;
 		case 3:
+			gSelectedOption = selectedOption;
+			System.out.print("Enter the age: ");
+			findAllBlocksForAge(sc.nextInt());
+			if (countPeople > 0) {
+				System.out.println("The Average yearly Income = " + ((int) yearlyIncomeSum / countPeople));
+			}
 			break;
 		}
 		sc.close();
