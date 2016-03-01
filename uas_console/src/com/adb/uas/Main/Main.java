@@ -290,12 +290,13 @@ public class Main {
 		String bytesAsString = new String(findBlock(pos, fileNameData), StandardCharsets.UTF_8);
 		Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
 		Matcher matcher = pattern.matcher(bytesAsString);
-
-		if (firstTime) {
-			System.out.println("N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
-			System.out.println(
-					"-----------------------------------------------------------------------------------------------------------");
-			firstTime = false;
+		if (gSelectedOption == 1) {
+			if (firstTime) {
+				System.out.println("N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
+				System.out.println(
+						"-----------------------------------------------------------------------------------------------------------");
+				firstTime = false;
+			}
 		}
 		while (matcher.find()) {
 			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
