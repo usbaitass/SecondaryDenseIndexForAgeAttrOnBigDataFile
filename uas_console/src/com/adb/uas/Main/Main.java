@@ -20,29 +20,27 @@ public class Main {
 	private static String fileNameData = "Person.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
-	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40 //
-														// records
-	private static String block;
-	private static int blockSearchKey = 1; // 4 bytes
-	// private static String sin;
-	private static int age = 0; // 4 bytes
+	private static byte[] readBlock = new byte[4000]; // 1 block
 	private static byte[][] buckets = new byte[82][4000]; // 324 KB
 	private static int[] iBucket = new int[82]; // 4 x 81 = 324 bytes
 	private static int[] prevBlockIndex = new int[82]; // 4 x 81 = 324 bytes
+	private static int[] bucketBlockIndexSize = new int[82];
+	private static int[] bPointerForBuckets = new int[82];
+	private static String strBlock;
+	private static int blockSearchKey = 1; // 4 bytes
+	private static int age = 0; // 4 bytes
 	private static PrintWriter out;
 	private static String stt;
-	private static int[] bucketBlockIndexSize = new int[82];
-	private static int blockPointer = 0;
-	private static int[] bPointerForBuckets = new int[82];
+	private static int blockPointerCounter = 0;
 	private static boolean firstTime = true;
 	private static String searchKeyHex;
-	private static int counter = 0;
+	private static int countPeople = 0;
 	private static RandomAccessFile raf;
 
 	/**
 	 * reads the data from a file.
 	 */
-	public static void readMyFile() {
+	public static void readDataFile() {
 		try {
 			System.out.println("file size = " + file.length() + " bytes.");
 			System.out.println(file.length() / 100 + " records.");
@@ -63,11 +61,12 @@ public class Main {
 	 * This method process each block that was read
 	 */
 	public static void processBlock() {
-		block = new String(readBlock);
-		hashKey();
+		strBlock = new String(readBlock);
+		decToHexKey();
+
 		for (int i = 0; i < 40; i++) {
 			// sin = block.substring(i * 100 + 0, i * 100 + 9);
-			age = Integer.parseInt(block.substring(i * 100 + 39, i * 100 + 41)) - 18;
+			age = Integer.parseInt(strBlock.substring(i * 100 + 39, i * 100 + 41)) - 18;
 			// System.out.println("sin = " + sin + " age = " + age);
 			InputSearchKeyIntoBucket();
 		}
@@ -76,7 +75,7 @@ public class Main {
 	/**
 	 * converts the decimal block index into hex
 	 */
-	public static void hashKey() {
+	public static void decToHexKey() {
 		searchKeyHex = Integer.toHexString(blockSearchKey);
 	}
 
@@ -99,7 +98,7 @@ public class Main {
 				String strSize = Integer.toString(bucketBlockIndexSize[age]);
 				buckets[age][2] = (byte) strSize.charAt(0);
 
-				String strPointer = Integer.toHexString(blockPointer);
+				String strPointer = Integer.toHexString(blockPointerCounter);
 
 				int d = strPointer.length();
 				for (int i = 0; i < 7 - d; i++) {
@@ -149,13 +148,15 @@ public class Main {
 		} catch (Exception e) {
 			System.out.println("Error inside freeBucket().");
 		}
+
 		for (int i = 0; i < 4000; i++) {
 			buckets[bucketNumber][i] = ' ';
 		}
+
 		iBucket[bucketNumber] = 0;
 		// System.out.println("blockPointer");
-		bPointerForBuckets[age] = blockPointer;
-		blockPointer++;
+		bPointerForBuckets[age] = blockPointerCounter;
+		blockPointerCounter++;
 	}
 
 	/**
@@ -169,6 +170,7 @@ public class Main {
 				stt = new String(buckets[i]);
 				out2.print(stt);
 			}
+
 			out2.close();
 		} catch (Exception e) {
 			System.out.println("error inside writeToIndexFile().");
@@ -191,9 +193,14 @@ public class Main {
 		} else {
 			System.out.println("There are no records with age " + new_age + " in the file.");
 		}
-
 	}
 
+	/**
+	 * 
+	 * @param block
+	 * @param new_age
+	 * @return
+	 */
 	public static boolean recursiveMethod(byte[] block, int new_age) {
 
 		String tempStrBlock = new String(block);
@@ -207,6 +214,11 @@ public class Main {
 		}
 	}
 
+	/**
+	 * 
+	 * @param block
+	 * @param new_age
+	 */
 	public static void readBlockIndexesFromBucket(byte[] block, int new_age) {
 
 		String strB = new String(block);
@@ -247,6 +259,11 @@ public class Main {
 		return blockX;
 	}
 
+	/**
+	 * 
+	 * @param new_pointer
+	 * @return
+	 */
 	public static int decodePointer(String new_pointer) {
 		String a = new_pointer;
 		int c = new_pointer.length();
@@ -261,6 +278,11 @@ public class Main {
 		return Integer.parseInt(a, 16);
 	}
 
+	/**
+	 * 
+	 * @param pos
+	 * @param new_age
+	 */
 	public static void readRecordsFromBlock(int pos, int new_age) {
 		String bytesAsString = new String(findBlock(pos, fileNameData), StandardCharsets.UTF_8);
 		Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
@@ -274,8 +296,8 @@ public class Main {
 		}
 		while (matcher.find()) {
 			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
-				counter++;
-				System.out.print(counter + ". ");
+				countPeople++;
+				System.out.print(countPeople + ". ");
 				System.out.print(matcher.group(1));
 				System.out.print("  " + matcher.group(2));
 				System.out.print("  " + matcher.group(3));
@@ -295,20 +317,30 @@ public class Main {
 	public static void main(String[] args) {
 		System.out.println("Program started...");
 		long start = System.currentTimeMillis();
+
+		// create the index file
 		try {
 			out = new PrintWriter("indexFile.txt");
 		} catch (Exception e) {
 			System.out.println("Error in writing file inside main.");
 		}
+
+		// initialize the first block index size for 3 bytes
 		for (int i = 0; i <= 81; i++) {
 			bucketBlockIndexSize[i] = 3;
 		}
-		readMyFile();
+
+		// read the Data file
+		readDataFile();
+		// write index to file
 		writeToIndexFile();
 		out.close();
+
 		long end = System.currentTimeMillis();
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
+
+		// menu option for different executions
 		Scanner sc = new Scanner(System.in);
 		System.out.println("1. Enter Age:");
 		System.out.println("2. Enter Range Age:");
@@ -323,14 +355,15 @@ public class Main {
 		case 2:
 			int youngest = sc.nextInt();
 			int olderst = sc.nextInt();
-			for(int i = youngest; i<=olderst; i++){
-				findAllBlocksForAge(i);	
+			for (int i = youngest; i <= olderst; i++) {
+				findAllBlocksForAge(i);
 			}
 			break;
 		case 3:
 			break;
 		}
 		sc.close();
+
 		System.out.println("Program terminated...");
 	}
 }// END
