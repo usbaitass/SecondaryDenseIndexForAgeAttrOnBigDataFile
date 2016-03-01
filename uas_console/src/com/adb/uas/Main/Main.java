@@ -38,7 +38,8 @@ public class Main {
 	private static String searchKeyHex;
 	private static int counter = 0;
 	private static RandomAccessFile raf;
-
+	private static long yearlyIncomeSum=0;
+	private static int gSelectedOption=0;
 	/**
 	 * reads the data from a file.
 	 */
@@ -273,24 +274,35 @@ public class Main {
 		String bytesAsString = new String(findBlock(pos, fileNameData), StandardCharsets.UTF_8);
 		Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
 		Matcher matcher = pattern.matcher(bytesAsString);
-
-		if (firstTime) {
-			System.out.println(
-					"N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
-			System.out.println(
-					"-----------------------------------------------------------------------------------------------------------");
-			firstTime = false;
+		
+		if(gSelectedOption ==1)
+		{
+			if (firstTime) {
+				System.out.println(
+						"N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
+				System.out.println(
+						"-----------------------------------------------------------------------------------------------------------");
+				firstTime = false;
+			}
 		}
+		
 		while (matcher.find()) {
 			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
 				counter++;
-				System.out.print(counter + ". ");
-				System.out.print(matcher.group(1));
-				System.out.print("  " + matcher.group(2));
-				System.out.print("  " + matcher.group(3));
-				System.out.print("  " + matcher.group(4));
-				System.out.print("   " + matcher.group(5));
-				System.out.println("     " + matcher.group(6));
+				if(gSelectedOption ==1)
+				{
+					System.out.print(counter + ". ");
+					System.out.print(matcher.group(1));
+					System.out.print("  " + matcher.group(2));
+					System.out.print("  " + matcher.group(3));
+					System.out.print("  " + matcher.group(4));
+					System.out.print("   " + matcher.group(5));
+					System.out.println("     " + matcher.group(6));
+				}
+				else if(gSelectedOption == 3)
+				{
+					yearlyIncomeSum+= Integer.parseInt(matcher.group(5));
+				}
 			}
 		}
 
@@ -322,16 +334,27 @@ public class Main {
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
 		Scanner sc = new Scanner(System.in);
-		System.out.println("1. Enter Age");
-		System.out.println("2. Enter Range Age");
+		System.out.println("1. Enter Age : ");
+		System.out.println("2. Enter Range Age : ");
+		System.out.println("3. Enter Age For Average Salary : ");
 		int selectedOption = sc.nextInt();
 		switch (selectedOption) {
 		case 1:
+			gSelectedOption =selectedOption;
 			System.out.print("Enter the age: ");
 			findAllBlocksForAge(sc.nextInt());
 			break;
 		case 2:
+			gSelectedOption =selectedOption;
 			break;
+		case 3:
+			gSelectedOption =selectedOption;
+			System.out.print("Enter the age: ");
+			findAllBlocksForAge(sc.nextInt());
+			if(counter > 0)
+			{
+				System.out.println("The Average yearly Income = " + ((int)yearlyIncomeSum/counter));
+			}
 		}
 		sc.close();
 		System.out.println("Program terminated...");
