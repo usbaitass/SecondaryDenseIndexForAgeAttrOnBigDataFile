@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	private static String fileNameData = "Person.txt";
+	private static String fileNameData = "Test30.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // 1 block
@@ -38,6 +38,7 @@ public class Main {
 	private static RandomAccessFile raf;
 	private static long yearlyIncomeSum = 0;
 	private static int gSelectedOption = 0;
+	private static String sin;
 
 	/**
 	 * reads the data from a file.
@@ -67,9 +68,9 @@ public class Main {
 		decToHexKey();
 
 		for (int i = 0; i < 40; i++) {
-			// sin = block.substring(i * 100 + 0, i * 100 + 9);
+		//	 sin = strBlock.substring(i * 100 + 0, i * 100 + 9);
 			age = Integer.parseInt(strBlock.substring(i * 100 + 39, i * 100 + 41)) - 18;
-			// System.out.println("sin = " + sin + " age = " + age);
+		//	 System.out.println("sin = " + sin + " age = " + (age+18));
 			InputSearchKeyIntoBucket();
 		}
 	}
@@ -233,8 +234,7 @@ public class Main {
 				int x = decodePointer(strB.substring(j, j + indexSize));
 				readRecordsFromBlock(x, new_age);
 			} catch (Exception e) {
-				// System.out.println("error inside
-				// findAllBlocksForAge()");
+		//		 System.out.println("error inside findAllBlocksForAge()");
 			}
 			j = j + indexSize;
 		}
@@ -355,6 +355,8 @@ public class Main {
 		System.out.println("3. Output average salaries for all group ages.");
 
 		int selectedOption = sc.nextInt();
+		gSelectedOption = selectedOption;
+		
 		switch (selectedOption) {
 		case 1:
 			System.out.print("Enter the age: ");
@@ -368,7 +370,6 @@ public class Main {
 			}
 			break;
 		case 3:
-			gSelectedOption = selectedOption;
 			System.out.print("Enter the age: ");
 			findAllBlocksForAge(sc.nextInt());
 			if (countPeople > 0) {
