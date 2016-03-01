@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	private static String fileNameData = "Person2.txt";
+	private static String fileNameData = "Person.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // one block 4 KB = 40 //
@@ -188,22 +188,9 @@ public class Main {
 		
 		// check if the bucket for a certain age has any records.
 		if (buckets[index].length > 0 && buckets[index][0] != 0){
-				
-			String tempStrBlock = new String(buckets[index]);
 			
-			//System.out.println(tempStrBlock);
+			recursiveMethod(buckets[index], new_age);
 			
-			String strPointer = tempStrBlock.substring(3, 10);
-			
-			//System.out.println(strPointer);
-			
-			if(strPointer.compareTo("0000000") ==0){
-				System.out.println("END HERE");
-				readBlockIndexesFromBucket(buckets[index], new_age);
-			}else{
-				System.out.println("START HERE");
-				System.out.println(recursiveMethod(decodePointer(strPointer), new_age));
-			}
 		}else{
 			System.out.println("There are no records with age "+ new_age +" in the file.");
 		}
@@ -211,17 +198,17 @@ public class Main {
 	}
 
 	
-	public static boolean recursiveMethod(int block_index, int new_age){
-
+	public static boolean recursiveMethod(byte[] block, int new_age){
 		
-		byte[] block = findBlock(block_index, "IndexFile.txt");
+		String tempStrBlock = new String(block);
 		
-		System.out.println(new String(block));
-		
-		readBlockIndexesFromBucket(block, new_age);
-			
-		return true;
-		
+		String strPointer = tempStrBlock.substring(3, 10);
+		if(strPointer.compareTo("0000000") == 0){
+			readBlockIndexesFromBucket(block, new_age);
+			return false;
+		}else{
+			return recursiveMethod(findBlock(decodePointer(strPointer), "IndexFile.txt"), new_age);
+		}	
 	}
 	
 	
@@ -234,22 +221,14 @@ public class Main {
 		while (j < 4000 - indexSize) {
 			try {
 				int x = decodePointer(strB.substring(j, j + indexSize));
-
 				readRecordsFromBlock(x, new_age);
 			} catch (Exception e) {
 				// System.out.println("error inside
 				// findAllBlocksForAge()");
 			}
-
 			j = j + indexSize;
-
 		}
-
-		
-		
 	}
-	
-	
 	
 	
 	/**
