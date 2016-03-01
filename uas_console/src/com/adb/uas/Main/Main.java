@@ -78,13 +78,10 @@ public class Main {
 	 */
 	public static void hashKey() {
 		searchKeyHex = Integer.toHexString(blockSearchKey);
-		// System.out.println("block index = " + blockSearchKey + " Hex = " +
-		// searchKeyHex);
 	}
 
 	/**
-	 * puts hashed search key index into appropriate bucket number according to
-	 * age
+	 * puts hashed key into appropriate bucket number according to age
 	 */
 	public static void InputSearchKeyIntoBucket() {
 
@@ -167,7 +164,7 @@ public class Main {
 	public static void writeToIndexFile() {
 		try {
 			PrintWriter out2 = new PrintWriter("indexFileZERO.txt");
-			
+
 			for (int i = 0; i <= 81; i++) {
 				stt = new String(buckets[i]);
 				out2.print(stt);
@@ -185,35 +182,33 @@ public class Main {
 	public static void findAllBlocksForAge(int new_age) {
 
 		int index = new_age - 18;
-		
+
 		// check if the bucket for a certain age has any records.
-		if (buckets[index].length > 0 && buckets[index][0] != 0){
-			
+		if (buckets[index].length > 0 && buckets[index][0] != 0) {
+
 			recursiveMethod(buckets[index], new_age);
-			
-		}else{
-			System.out.println("There are no records with age "+ new_age +" in the file.");
+
+		} else {
+			System.out.println("There are no records with age " + new_age + " in the file.");
 		}
-		
+
 	}
 
-	
-	public static boolean recursiveMethod(byte[] block, int new_age){
-		
+	public static boolean recursiveMethod(byte[] block, int new_age) {
+
 		String tempStrBlock = new String(block);
-		
+
 		String strPointer = tempStrBlock.substring(3, 10);
-		if(strPointer.compareTo("0000000") == 0){
+		if (strPointer.compareTo("0000000") == 0) {
 			readBlockIndexesFromBucket(block, new_age);
 			return false;
-		}else{
+		} else {
 			return recursiveMethod(findBlock(decodePointer(strPointer), "IndexFile.txt"), new_age);
-		}	
+		}
 	}
-	
-	
-	public static void readBlockIndexesFromBucket(byte[] block, int new_age){
-		
+
+	public static void readBlockIndexesFromBucket(byte[] block, int new_age) {
+
 		String strB = new String(block);
 		int indexSize = Integer.parseInt(strB.substring(2, 3));
 
@@ -229,8 +224,7 @@ public class Main {
 			j = j + indexSize;
 		}
 	}
-	
-	
+
 	/**
 	 * @param new_index
 	 * @param new_filename
@@ -242,7 +236,7 @@ public class Main {
 			file = new File(new_filename);
 			raf = new RandomAccessFile(file, "r");
 			int n = 4000;
-			
+
 			raf.seek((new_index - 1) * n);
 			raf.read(blockX); // read given block
 			raf.close();
@@ -252,9 +246,8 @@ public class Main {
 		}
 		return blockX;
 	}
-	
-	
-	public static int decodePointer(String new_pointer){
+
+	public static int decodePointer(String new_pointer) {
 		String a = new_pointer;
 		int c = new_pointer.length();
 		for (int b = 0; b < c;) {
@@ -267,16 +260,14 @@ public class Main {
 		}
 		return Integer.parseInt(a, 16);
 	}
-	
-	
-	public static void readRecordsFromBlock(int pos, int new_age){
+
+	public static void readRecordsFromBlock(int pos, int new_age) {
 		String bytesAsString = new String(findBlock(pos, fileNameData), StandardCharsets.UTF_8);
 		Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
 		Matcher matcher = pattern.matcher(bytesAsString);
 
 		if (firstTime) {
-			System.out.println(
-					"N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
+			System.out.println("N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
 			System.out.println(
 					"-----------------------------------------------------------------------------------------------------------");
 			firstTime = false;
@@ -294,10 +285,7 @@ public class Main {
 			}
 		}
 
-		
 	}
-	
-	
 
 	/**
 	 * Main Method which initiates the program
@@ -322,8 +310,10 @@ public class Main {
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
 		Scanner sc = new Scanner(System.in);
-		System.out.println("1. Enter Age");
-		System.out.println("2. Enter Range Age");
+		System.out.println("1. Enter Age:");
+		System.out.println("2. Enter Range Age:");
+		System.out.println("3. Output average salaries for all group ages.");
+
 		int selectedOption = sc.nextInt();
 		switch (selectedOption) {
 		case 1:
@@ -331,6 +321,13 @@ public class Main {
 			findAllBlocksForAge(sc.nextInt());
 			break;
 		case 2:
+			int youngest = sc.nextInt();
+			int olderst = sc.nextInt();
+			for(int i = youngest; i<=olderst; i++){
+				findAllBlocksForAge(i);	
+			}
+			break;
+		case 3:
 			break;
 		}
 		sc.close();
