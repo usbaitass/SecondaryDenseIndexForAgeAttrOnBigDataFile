@@ -337,6 +337,10 @@ public class Main {
 		System.out.println("1. Enter Age : ");
 		System.out.println("2. Enter Range Age : ");
 		System.out.println("3. Enter Age For Average Salary : ");
+		System.out.println("1. Enter Age:");
+		System.out.println("2. Enter Range Age:");
+		System.out.println("3. Output average salaries for all group ages.");
+
 		int selectedOption = sc.nextInt();
 		switch (selectedOption) {
 		case 1:
@@ -346,6 +350,11 @@ public class Main {
 			break;
 		case 2:
 			gSelectedOption =selectedOption;
+			int youngest = sc.nextInt();
+			int olderst = sc.nextInt();
+			for(int i = youngest; i<=olderst; i++){
+				findAllBlocksForAge(i);	
+			}
 			break;
 		case 3:
 			gSelectedOption =selectedOption;
