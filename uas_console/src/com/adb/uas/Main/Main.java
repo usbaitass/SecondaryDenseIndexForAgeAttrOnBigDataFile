@@ -188,30 +188,22 @@ public class Main {
 		
 		// check if the bucket for a certain age has any records.
 		if (buckets[index].length > 0 && buckets[index][0] != 0){
-			
-			System.out.println("xyz");
-			
+				
 			String tempStrBlock = new String(buckets[index]);
 			
-			System.out.println(tempStrBlock);
+			//System.out.println(tempStrBlock);
 			
 			String strPointer = tempStrBlock.substring(3, 10);
 			
-			System.out.println(strPointer);
+			//System.out.println(strPointer);
 			
 			if(strPointer.compareTo("0000000") ==0){
 				System.out.println("END HERE");
-	//			readBlockIndexesFromBucket(buckets[index], new_age);
+				readBlockIndexesFromBucket(buckets[index], new_age);
 			}else{
 				System.out.println("START HERE");
-				
-				
 				System.out.println(recursiveMethod(decodePointer(strPointer), new_age));
-
-				
 			}
-			
-			
 		}else{
 			System.out.println("There are no records with age "+ new_age +" in the file.");
 		}
