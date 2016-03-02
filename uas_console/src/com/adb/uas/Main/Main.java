@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	private static String fileNameData = "Test30.txt";
+	private static String fileNameData = "Test15.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // 1 block
@@ -39,6 +39,8 @@ public class Main {
 	private static long yearlyIncomeSum = 0;
 	private static int gSelectedOption = 0;
 	private static String sin;
+	private static PrintWriter out3;
+	
 
 	/**
 	 * reads the data from a file.
@@ -47,6 +49,9 @@ public class Main {
 		try {
 			System.out.println("file size = " + file.length() + " bytes.");
 			System.out.println(file.length() / 100 + " records.");
+			
+			System.out.println("number of blocks required = "+ file.length()/4000);
+			
 
 			fin = new FileInputStream(file);
 
@@ -191,7 +196,7 @@ public class Main {
 		// check if the bucket for a certain age has any records.
 		if (buckets[index].length > 0 && buckets[index][0] != 0) {
 
-			recursiveMethod(buckets[index], new_age);
+			System.out.println(recursiveMethod(buckets[index], new_age));
 
 		} else {
 			System.out.println("There are no records with age " + new_age + " in the file.");
@@ -212,10 +217,14 @@ public class Main {
 		String strPointer = tempStrBlock.substring(3, 10);
 		if (strPointer.compareTo("0000000") == 0) {
 			readBlockIndexesFromBucket(block, new_age);
-			return false;
+			return true;
 		} else {
-			return recursiveMethod(findBlock(decodePointer(strPointer), "IndexFile.txt"), new_age);
+			if(recursiveMethod(findBlock(decodePointer(strPointer), "IndexFile.txt"), new_age)){
+				readBlockIndexesFromBucket(block, new_age);
+				return true;
+			}
 		}
+		return false;
 	}
 
 	/**
@@ -302,13 +311,22 @@ public class Main {
 			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
 				countPeople++;
 				if (gSelectedOption == 1) {
-					System.out.print(countPeople + ". ");
+					out3.print(countPeople + ". ");
+					out3.print(matcher.group(1));
+					out3.print("  " + matcher.group(2));
+					out3.print("  " + matcher.group(3));
+					out3.print("  " + matcher.group(4));
+					out3.print("   " + matcher.group(5));
+					out3.println("     " + matcher.group(6));
+
+				/*	System.out.print(countPeople + ". ");
 					System.out.print(matcher.group(1));
 					System.out.print("  " + matcher.group(2));
 					System.out.print("  " + matcher.group(3));
 					System.out.print("  " + matcher.group(4));
 					System.out.print("   " + matcher.group(5));
 					System.out.println("     " + matcher.group(6));
+					*/
 				} else if (gSelectedOption == 3) {
 					yearlyIncomeSum += Integer.parseInt(matcher.group(5));
 				}
@@ -356,7 +374,9 @@ public class Main {
 
 		int selectedOption = sc.nextInt();
 		gSelectedOption = selectedOption;
-		
+		try{
+		out3 = new PrintWriter("Output.txt");
+		}catch(Exception e){}
 		switch (selectedOption) {
 		case 1:
 			System.out.print("Enter the age: ");
@@ -378,6 +398,7 @@ public class Main {
 			break;
 		}
 		sc.close();
+		out3.close();
 
 		System.out.println("Program terminated...");
 	}
