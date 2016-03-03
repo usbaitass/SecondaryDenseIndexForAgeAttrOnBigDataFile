@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	private static String fileNameData = "Test15.txt";
+	private static String fileNameData = "Test1000.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // 1 block
@@ -150,6 +150,28 @@ public class Main {
 	 *            bucket index
 	 */
 	public static void freeBucket(int bucketNumber) {
+		
+		int result = 3990/bucketBlockIndexSize[bucketNumber];
+		
+		String strr = "";
+		for(int i=0; i<bucketBlockIndexSize[bucketNumber]; i++){
+			strr += "F";
+		}
+	//	System.out.println(strr);
+		try{
+		int x1 = decodePointer(strr);
+		
+		int result2 = (x1 - blockSearchKey)%result;
+		
+		result = (x1 - blockSearchKey)/result;
+		
+		if(result == 0 && result2 != 0){
+			bucketBlockIndexSize[bucketNumber]++;
+		}
+		}catch(Exception e){
+			System.out.println("ULA HERE");
+		}
+		
 		try {
 			stt = new String(buckets[bucketNumber]);
 			out.print(stt);
@@ -173,12 +195,10 @@ public class Main {
 	public static void writeToIndexFile() {
 		try {
 			PrintWriter out2 = new PrintWriter("indexFileZERO.txt");
-
 			for (int i = 0; i <= 81; i++) {
 				stt = new String(buckets[i]);
 				out2.print(stt);
 			}
-
 			out2.close();
 		} catch (Exception e) {
 			System.out.println("error inside writeToIndexFile().");
@@ -190,18 +210,13 @@ public class Main {
 	 * @param new_age
 	 */
 	public static void findAllBlocksForAge(int new_age) {
-
 		int index = new_age - 18;
-
 		// check if the bucket for a certain age has any records.
 		if (buckets[index].length > 0 && buckets[index][0] != 0) {
-
-			System.out.println(recursiveMethod(buckets[index], new_age));
-
+			recursiveMethod(buckets[index], new_age);
 		} else {
 			System.out.println("There are no records with age " + new_age + " in the file.");
 		}
-
 	}
 
 	/**
@@ -211,9 +226,7 @@ public class Main {
 	 * @return
 	 */
 	public static boolean recursiveMethod(byte[] block, int new_age) {
-
 		String tempStrBlock = new String(block);
-
 		String strPointer = tempStrBlock.substring(3, 10);
 		if (strPointer.compareTo("0000000") == 0) {
 			readBlockIndexesFromBucket(block, new_age);
@@ -233,10 +246,8 @@ public class Main {
 	 * @param new_age
 	 */
 	public static void readBlockIndexesFromBucket(byte[] block, int new_age) {
-
 		String strB = new String(block);
 		int indexSize = Integer.parseInt(strB.substring(2, 3));
-
 		int j = 10;
 		while (j < 4000 - indexSize) {
 			try {
@@ -260,7 +271,6 @@ public class Main {
 			file = new File(new_filename);
 			raf = new RandomAccessFile(file, "r");
 			int n = 4000;
-
 			raf.seek((new_index - 1) * n);
 			raf.read(blockX); // read given block
 			raf.close();
