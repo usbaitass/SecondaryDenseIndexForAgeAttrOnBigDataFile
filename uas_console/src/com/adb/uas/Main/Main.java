@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	private static String fileNameData = "Test1000.txt";
+	private static String fileNameData = "Person.txt";
 	private static File file = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // 1 block
@@ -40,6 +40,7 @@ public class Main {
 	private static int gSelectedOption = 0;
 	private static String sin;
 	private static PrintWriter out3;
+	private static int nIO = 0;
 	
 
 	/**
@@ -56,6 +57,7 @@ public class Main {
 			fin = new FileInputStream(file);
 
 			while ((fin.read(readBlock)) != -1) { // we read ONE BLOCK at a time
+				nIO++;
 				processBlock();
 				blockSearchKey++; // assign search key to block
 			}
@@ -187,6 +189,7 @@ public class Main {
 		// System.out.println("blockPointer");
 		bPointerForBuckets[age] = blockPointerCounter;
 		blockPointerCounter++;
+		nIO++;
 	}
 
 	/**
@@ -230,6 +233,7 @@ public class Main {
 		String strPointer = tempStrBlock.substring(3, 10);
 		if (strPointer.compareTo("0000000") == 0) {
 			readBlockIndexesFromBucket(block, new_age);
+			nIO++;
 			return true;
 		} else {
 			if(recursiveMethod(findBlock(decodePointer(strPointer), "IndexFile.txt"), new_age)){
@@ -278,6 +282,7 @@ public class Main {
 			e.printStackTrace();
 			System.out.println("error inside findRecord()");
 		}
+		nIO++;
 		return blockX;
 	}
 
@@ -369,12 +374,14 @@ public class Main {
 		// read the Data file
 		readDataFile();
 		// write index to file
-		writeToIndexFile();
+	//	writeToIndexFile();
 		out.close();
 
 		long end = System.currentTimeMillis();
 		System.out.println("Index File has been constructed...");
 		System.out.println("Time taken = " + (end - start) + " ms");
+		System.out.println("Number of I/O = "+ nIO);
+		nIO = 0;
 
 		// menu option for different executions
 		Scanner sc = new Scanner(System.in);
@@ -390,7 +397,13 @@ public class Main {
 		switch (selectedOption) {
 		case 1:
 			System.out.print("Enter the age: ");
-			findAllBlocksForAge(sc.nextInt());
+			int tempN = sc.nextInt();
+			start = System.currentTimeMillis();
+			findAllBlocksForAge(tempN);
+			end = System.currentTimeMillis();
+			System.out.println(countPeople +" people of age "+ tempN);
+			System.out.println("Time taken = " + (end - start) + " ms");
+			System.out.println("Number of I/O = "+ (nIO-1));
 			break;
 		case 2:
 			int youngest = sc.nextInt();
