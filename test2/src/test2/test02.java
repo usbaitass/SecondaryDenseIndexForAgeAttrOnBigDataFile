@@ -8,15 +8,16 @@ public class test02 {
 
 	public static void main(String[] args){
 		
-		File file = new File("Test1000.txt");
+		File file = new File("/Users/usbaitass/git/uas_console/test2/Test10000.txt");
 		try{
 		FileInputStream fin = new FileInputStream(file);
-		int age = 99;
+		int age = 18;
 		int countPeople = 0;
 		int r_age = 0;
 		
 		byte[] block = new byte[4000];
 		String strBlock;
+		long start = System.currentTimeMillis();
 		while(fin.read(block) != -1){
 			strBlock = new String(block);
 			
@@ -29,7 +30,8 @@ public class test02 {
 			}
 			
 		}
-		
+		long end = System.currentTimeMillis();
+		System.out.println("Time taken = "+ (end - start) +"ms");
 		System.out.println(countPeople);
 		
 		

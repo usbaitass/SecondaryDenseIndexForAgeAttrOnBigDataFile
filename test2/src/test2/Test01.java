@@ -17,7 +17,7 @@ public class Test01 {
 		try{
 		PrintWriter out = new PrintWriter(file);
 		
-		for(int i=1; i<=100; i++){
+		for(int i=1; i<=100000000; i++){
 			
 			// PRINTS SIN
 			int x = i;
