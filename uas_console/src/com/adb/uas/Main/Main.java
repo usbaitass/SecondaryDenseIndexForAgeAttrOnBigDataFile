@@ -93,7 +93,7 @@ public class Main {
 		// prevents the same block indexes in one bucket
 		if (prevBlockIndex[age] != blockIndex) {
 
-			if (blockIndex > ((int) Math.pow(16, bucketBlockIndexSize[age]))) {
+			if (blockIndex > ((int) Math.pow(16, bucketBlockIndexSize[age])-1)) {
 				System.out.println("HELLO WORLD "+ blockIndex);
 				
 				freeAllBuckets();
