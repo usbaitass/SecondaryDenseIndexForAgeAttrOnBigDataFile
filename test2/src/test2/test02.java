@@ -8,7 +8,9 @@ public class test02 {
 
 	public static void main(String[] args){
 		
-		File file = new File("/Users/usbaitass/git/uas_console/test2/Test10000.txt");
+		//File file = new File("/Users/usbaitass/git/uas_console/test2/Test10000.txt");
+		//File file = new File("/Users/usbaitass/git/uas_console/test2/Test20.txt");
+		File file = new File("/Users/usbaitass/git/uas_console/uas_console/Test30.txt");
 		try{
 		FileInputStream fin = new FileInputStream(file);
 		int age = 18;
@@ -25,6 +27,7 @@ public class test02 {
 				
 				r_age = Integer.parseInt(strBlock.substring(i * 100 + 39, i * 100 + 41));
 				if(age == r_age){
+					System.out.println(strBlock.substring(i*100, i*100+9));
 					countPeople++;
 				}	
 			}

@@ -12,12 +12,12 @@ public class Test01 {
 		
 		System.out.println("Program started...");
 
-		File file = new File("Test111.txt");
+		File file = new File("Test12.txt");
 		
 		try{
 		PrintWriter out = new PrintWriter(file);
 		
-		for(int i=1; i<=100000000; i++){
+		for(int i=1; i<=120000; i++){
 			
 			// PRINTS SIN
 			int x = i;
