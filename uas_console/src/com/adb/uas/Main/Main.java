@@ -25,7 +25,7 @@ public class Main {
 	// private static String fileNameData =
 	// "/Users/usbaitass/git/uas_console/test2/Test12.txt";
 	// private static String fileNameData = "Person.txt";
-	private static String fileNameData = "/Users/usbaitass/Public/person_fnl/person_fnl.txt";
+	private static String fileNameData = "person_fnl.txt";
 	private static File fileData = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // 1 block
@@ -214,13 +214,15 @@ public class Main {
 	 * @return
 	 */
 	public static boolean recursiveMethod(byte[] block, int new_age) {
-		tempStr = new String(block);
-		tempStr = tempStr.substring(2, 10);
-		if (tempStr.compareTo("00000000") == 0) {
+		String tempStr1 = new String(block);
+		//System.out.println(tempStr);
+		//System.exit(0);
+		tempStr1 = tempStr1.substring(2, 10);
+		if (tempStr1.compareTo("00000000") == 0) {
 			readBlockIndexesFromBucket(block, new_age);
 			return true;
 		} else {
-			if (recursiveMethod(findBucket(decodePointer(tempStr)), new_age)) {
+			if (recursiveMethod(findBucket(decodePointer(tempStr1)), new_age)) {
 				readBlockIndexesFromBucket(block, new_age);
 				return true;
 			}
@@ -243,7 +245,12 @@ public class Main {
 		while (j < 4000 - bucketBlockIndexSize) {
 			try {
 				sss = strB.substring(j, j + bucketBlockIndexSize);
-				sss = sss.replaceAll(" ", "");
+				//sss = sss.replaceAll(" ", "");
+				sss=sss.trim();				
+				sss=sss.replaceAll("^\\s+", "");
+				sss = sss.replaceAll("(^ )|( $)", "");
+				
+		     	System.out.println("sss:"+sss +",Length:"+sss.length());
 				if (sss.length() > 0) {
 					int x = decodePointer(sss);
 					readRecordsFromBlock(x, new_age);
@@ -333,6 +340,10 @@ public class Main {
 	 */
 	public static void main(String[] args) {
 		// findBlock(536877, fileNameData);
+		String tempstr="    ";
+		System.out.println("vale :"+  tempstr.replaceAll("(^ )|( $)", "")+".");
+		//myString.replaceAll("\\s+$", "");
+				
 		try {
 			System.out.println("file size = " + fileData.length() + " bytes.");
 			System.out.println(fileData.length() / 100 + " records.");
@@ -377,7 +388,7 @@ public class Main {
 					findAllBucketsForAge(tempN);
 					end = System.currentTimeMillis();
 					System.out.println("Number of people of age " + tempN + " = " + countPeople);
-					System.out.println("The Average yearly Income = " + (yearlyIncomeSum / countPeople));
+					System.out.println("The Average yearly Income = " + (yearlyIncomeSum / (double)countPeople));
 					System.out.println("Time taken = " + (end - start) + " ms");
 					// -1 because first bucket is stored in Main Memory
 					System.out.println("Number of I/O = " + (nIO - 1));
@@ -392,19 +403,19 @@ public class Main {
 					long sum = 0;
 					long countPeople2 = 0;
 					String str = "";
-					for (int i = 18; i <= 19; i++) {
+					for (int i = 18; i <= 27; i++) {
 						findAllBucketsForAge(i);
 
 						countPeople2 += countPeople;
 						sum += yearlyIncomeSum;
-						if (counter == 1 && i < 20) {
+						if (counter == 9) {
 							str += " In the range of " + i + " - " + (i + counter) + " there are " + countPeople2
 									+ " and average salary is " + sum / countPeople2 + "\r\n";
 							countPeople2 = 0;
 							sum = 0;
 							counter = 0;
 						}
-						if (i == 30) {
+						if (i == 99) {
 							str += " In the range of " + i + " - " + (i + counter) + " there are " + countPeople2
 									+ " and average salary is " + sum / countPeople2 + "\r\n";
 
