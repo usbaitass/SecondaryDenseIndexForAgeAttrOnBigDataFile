@@ -110,10 +110,7 @@ public class Main {
 
 				tempStr = Integer.toHexString(bPointerForBuckets[age]);
 
-				int d = tempStr.length();
-				for (int i = 0; i < 8 - d; i++) {
-					tempStr = '0' + tempStr;
-				}
+				tempStr = String.format("%0"+ (8 - tempStr.length() )+"d%s",0 ,tempStr);
 
 				buckets[age][2] = (byte) tempStr.charAt(0);
 				buckets[age][3] = (byte) tempStr.charAt(1);
@@ -129,13 +126,11 @@ public class Main {
 			// writes the block indexes in bucket
 			int i = 0;
 			for (; i < bucketBlockIndexSize - blockIndexHex.length(); i++) {
-				byte b = ' ';
-				buckets[age][iPosInBucket[age] + i] = b;
+				buckets[age][iPosInBucket[age] + i] = (byte) ' ';
 			}
 
 			for (int j = 0; j < blockIndexHex.length(); j++) {
-				byte b = (byte) blockIndexHex.charAt(j);
-				buckets[age][iPosInBucket[age] + i + j] = b;
+				buckets[age][iPosInBucket[age] + i + j] = (byte) blockIndexHex.charAt(j);
 			}
 
 			iPosInBucket[age] += bucketBlockIndexSize;
@@ -160,9 +155,7 @@ public class Main {
 			e.printStackTrace();
 		}
 		// reinitialize bucket
-		for (int i = 0; i < 4000; i++) {
-			buckets[bucketNumber][i] = ' ';
-		}
+		buckets[bucketNumber] = new byte[4000];
 
 		iPosInBucket[bucketNumber] = 0;
 		bPointerForBuckets[age] = bucketOverflowCounter;
