@@ -18,14 +18,7 @@ import java.util.regex.Pattern;
  */
 public class Main {
 
-	// private static String fileNameData =
-	// "/Users/usbaitass/git/uas_console/test2/Test10000.txt";
-	// private static String fileNameData =
-	// "/Users/usbaitass/git/uas_console/test2/Test20.txt";
-	// private static String fileNameData =
-	// "/Users/usbaitass/git/uas_console/test2/Test12.txt";
-	// private static String fileNameData = "Person.txt";
-	private static String fileNameData = "person_fnl.txt";
+	private static String fileNameData = "C:\\Users\\u_baitas\\Downloads\\person_fnl.txt";
 	private static File fileData = new File(fileNameData);
 	private static FileInputStream fin = null;
 	private static byte[] readBlock = new byte[4000]; // 1 block
@@ -47,17 +40,16 @@ public class Main {
 	private static long yearlyIncomeSum = 0;
 	private static int countPeople = 0;
 	private static int nIO = 0;
-	// private static boolean indexConstructed = true;
 	private static Pattern pattern = Pattern.compile("(\\d{9})([^\"]{15})([^\"]{15})(\\d{2})(\\d{10})([^\"]{49})");
 	private static Matcher matcher;
 	private static String bytesAsString;
 	private static int selectedOption;
 
-	private static File fileIndex = new File("IndexFile.txt");
+	private static File fileIndex = new File("C:\\Users\\u_baitas\\Downloads\\IndexFile.txt");
 	private static RandomAccessFile rafData;
 
 	/**
-	 * reads the data from a file.
+	 * reads the data blocks from a data file.
 	 */
 	public static void readDataFile() {
 		try {
@@ -73,7 +65,7 @@ public class Main {
 	}
 
 	/**
-	 * This method process each block that was read
+	 * This method process every block that was read
 	 */
 	public static void processBlock() {
 		strBlock = new String(readBlock);
@@ -86,7 +78,7 @@ public class Main {
 	}
 
 	/**
-	 * converts the decimal block index into hex
+	 * converts the decimal block index into hexadecimal string
 	 */
 	public static void decToHexKey() {
 		blockIndexHex = Integer.toHexString(blockIndex);
@@ -109,8 +101,8 @@ public class Main {
 				buckets[age][1] = (byte) tempStr.charAt(1);
 
 				tempStr = Integer.toHexString(bPointerForBuckets[age]);
-
-				tempStr = String.format("%0"+ (8 - tempStr.length() )+"d%s",0 ,tempStr);
+				// put Zero's in front of a pointer string
+				tempStr = String.format("%0" + (8 - tempStr.length()) + "d%s", 0, tempStr);
 
 				buckets[age][2] = (byte) tempStr.charAt(0);
 				buckets[age][3] = (byte) tempStr.charAt(1);
@@ -141,7 +133,7 @@ public class Main {
 	}
 
 	/**
-	 * writes the bucket to the file.
+	 * writes the overflow bucket to the index file.
 	 * 
 	 * @param bucketNumber
 	 *            bucket index
@@ -155,16 +147,17 @@ public class Main {
 			e.printStackTrace();
 		}
 		// reinitialize bucket
+		buckets[bucketNumber] = null;
 		buckets[bucketNumber] = new byte[4000];
 
 		iPosInBucket[bucketNumber] = 0;
 		bPointerForBuckets[age] = bucketOverflowCounter;
-		bucketOverflowCounter++; // count number of overflow buckets
-		nIO++; // count number of I/O WRITES
+		bucketOverflowCounter++; // count index of overflowed buckets
+		nIO++; // increment I/O WRITEs each time a bucket is written
 	}
 
 	/**
-	 * writes the sorted buckets into txt file (back up)
+	 * writes the sorted buckets into Output.txt file (back up)
 	 */
 	public static void writeToIndexFile() {
 		try {
@@ -180,7 +173,7 @@ public class Main {
 	}
 
 	/**
-	 * This method finds all blocks for a given age
+	 * This method initiates the search for all records of a given age
 	 * 
 	 * @param new_age
 	 *            given age
@@ -210,20 +203,26 @@ public class Main {
 	 * very first bucket
 	 * 
 	 * @param block
+	 *            bucket
 	 * @param new_age
-	 * @return
+	 *            given age
+	 * @return true if reaches the first Overflowed bucket safely
 	 */
 	public static boolean recursiveMethod(byte[] block, int new_age) {
 		String tempStr1 = new String(block);
-		//System.out.println(tempStr);
-		//System.exit(0);
-		tempStr1 = tempStr1.substring(2, 10);
-		if (tempStr1.compareTo("00000000") == 0) {
+		String tempStr2 = tempStr1.substring(2, 10);
+		tempStr1 = null;
+		System.gc();
+		if (tempStr2.compareTo("00000000") == 0) {
+			tempStr2 = null;
 			readBlockIndexesFromBucket(block, new_age);
+			block = null;
 			return true;
 		} else {
-			if (recursiveMethod(findBucket(decodePointer(tempStr1)), new_age)) {
+			if (recursiveMethod(findBucket(decodePointer(tempStr2)), new_age)) {
+				tempStr2 = null;
 				readBlockIndexesFromBucket(block, new_age);
+				block = null;
 				return true;
 			}
 		}
@@ -231,10 +230,10 @@ public class Main {
 	}
 
 	/**
-	 * This method reads data from given block
+	 * This method reads data block indexes from a given bucket
 	 * 
 	 * @param block
-	 *            given block
+	 *            given bucket
 	 * @param new_age
 	 *            given age
 	 */
@@ -245,12 +244,12 @@ public class Main {
 		while (j < 4000 - bucketBlockIndexSize) {
 			try {
 				sss = strB.substring(j, j + bucketBlockIndexSize);
-				//sss = sss.replaceAll(" ", "");
-				sss=sss.trim();				
-				sss=sss.replaceAll("^\\s+", "");
+				// sss = sss.replaceAll(" ", "");
+				sss = sss.trim();
+				sss = sss.replaceAll("^\\s+", "");
 				sss = sss.replaceAll("(^ )|( $)", "");
-				
-		     	System.out.println("sss:"+sss +",Length:"+sss.length());
+
+				// System.out.println("sss:"+sss +",Length:"+sss.length());
 				if (sss.length() > 0) {
 					int x = decodePointer(sss);
 					readRecordsFromBlock(x, new_age);
@@ -264,6 +263,13 @@ public class Main {
 		}
 	}
 
+	/**
+	 * This method finds the bucket in index file
+	 * 
+	 * @param new_index
+	 *            bucket position in the file
+	 * @return found bucket
+	 */
 	public static byte[] findBucket(int new_index) {
 		byte[] blockX = new byte[4000];
 		try {
@@ -272,10 +278,18 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		// increment I/O each time bucket is READ from index file
 		nIO++;
 		return blockX;
 	}
 
+	/*
+	 * This method finds the data block in the data file
+	 * 
+	 * @param new_index block position
+	 * 
+	 * @return found data block
+	 */
 	public static byte[] findDataBlock(int new_index) {
 		try {
 			rafData.seek(((long) new_index - 1) * 4000);
@@ -283,10 +297,18 @@ public class Main {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		// increment I/O each time data block is READ from data file
 		nIO++;
 		return readBlock;
 	}
 
+	/**
+	 * This method decodes the hexadecimal pointer string to decimal value
+	 * 
+	 * @param new_pointer
+	 *            Hexadecimal string
+	 * @return decimal integer
+	 */
 	public static int decodePointer(String new_pointer) {
 		new_pointer = new_pointer.replace(" ", "");
 		new_pointer = new_pointer.replaceAll("^0+", "");
@@ -294,8 +316,8 @@ public class Main {
 	}
 
 	/**
-	 * This method reads all 40 records from given block and prints only the
-	 * ones which age is same as given age
+	 * This method reads all 40 records from a given block and prints only the
+	 * ones which age is same as the given age
 	 * 
 	 * @param pos
 	 *            block position in the file
@@ -308,9 +330,10 @@ public class Main {
 		matcher = pattern.matcher(bytesAsString);
 
 		if (firstTime) {
-			out2.println("N   SIN        FIRST_NAME       LAST_NAME        AGE  YEARLY_INCOME  ADDRESS");
-			out2.println(
-					"-----------------------------------------------------------------------------------------------------------");
+			// out2.println("N SIN FIRST_NAME LAST_NAME AGE YEARLY_INCOME
+			// ADDRESS");
+			// out2.println(
+			// "-----------------------------------------------------------------------------------------------------------");
 			firstTime = false;
 		}
 
@@ -318,13 +341,13 @@ public class Main {
 			if (matcher.group(4).compareToIgnoreCase(Integer.toString(new_age)) == 0) {
 				countPeople++;
 				if (selectedOption == 1) {
-					out2.print(countPeople + ". ");
-					out2.print(matcher.group(1));
-					out2.print(" " + matcher.group(2));
-					out2.print(" " + matcher.group(3));
-					out2.print(" " + matcher.group(4));
-					out2.print(" " + matcher.group(5));
-					out2.println(" " + matcher.group(6));
+					// out2.print(countPeople + ". ");
+					// out2.print(matcher.group(1));
+					// out2.print(" " + matcher.group(2));
+					// out2.print(" " + matcher.group(3));
+					// out2.print(" " + matcher.group(4));
+					// out2.print(" " + matcher.group(5));
+					// out2.println(" " + matcher.group(6));
 				}
 				yearlyIncomeSum += Integer.parseInt(matcher.group(5));
 			}
@@ -339,11 +362,6 @@ public class Main {
 	 *            standard params
 	 */
 	public static void main(String[] args) {
-		// findBlock(536877, fileNameData);
-		String tempstr="    ";
-		System.out.println("vale :"+  tempstr.replaceAll("(^ )|( $)", "")+".");
-		//myString.replaceAll("\\s+$", "");
-				
 		try {
 			System.out.println("file size = " + fileData.length() + " bytes.");
 			System.out.println(fileData.length() / 100 + " records.");
@@ -355,7 +373,7 @@ public class Main {
 			long start = System.currentTimeMillis();
 
 			// create the index file
-			out = new PrintWriter("indexFile.txt");
+			out = new PrintWriter("C:\\Users\\u_baitas\\Downloads\\indexFile.txt");
 			// read the Data file
 			readDataFile();
 			// write index to file
@@ -372,60 +390,64 @@ public class Main {
 
 			// menu option for different executions
 			Scanner sc = new Scanner(System.in);
-			
-			
 
 			while (selectedOption != -1) {
 				System.out.println("1. For one age:");
-				System.out.println("2. Print average income for every 10 ages:");
+				System.out.println("2. Print average income and count of people for range queries:");
 				selectedOption = sc.nextInt();
 				switch (selectedOption) {
 				case 1:
+					nIO = 0;
+					yearlyIncomeSum = 0;
+					countPeople = 0;
 					out2 = new PrintWriter("Output.txt");
+
 					System.out.print("Enter the age 18-99: ");
 					int tempN = sc.nextInt();
 					start = System.currentTimeMillis();
+
 					findAllBucketsForAge(tempN);
+
 					end = System.currentTimeMillis();
 					System.out.println("Number of people of age " + tempN + " = " + countPeople);
-					System.out.println("The Average yearly Income = " + (yearlyIncomeSum / (double)countPeople));
+					System.out.println("The Average yearly Income = " + (yearlyIncomeSum / (double) countPeople));
 					System.out.println("Time taken = " + (end - start) + " ms");
 					// -1 because first bucket is stored in Main Memory
 					System.out.println("Number of I/O = " + (nIO - 1));
-					yearlyIncomeSum = 0;
-					countPeople = 0;
-
-					// System.out.println("count="+count);
 					out2.close();
 					break;
 				case 2:
-					int counter = 0;
 					long sum = 0;
 					long countPeople2 = 0;
+					countPeople = 0;
+					yearlyIncomeSum = 0;
 					String str = "";
+					nIO = 0;
+					int youngest = 18;
+					int oldest = 99;
+					System.out.println("Enter youngest age in query:");
+					youngest = sc.nextInt();
+					System.out.println("Enter oldest age in query:");
+					oldest = sc.nextInt();
+					start = System.currentTimeMillis();
+					
 					for (int i = 18; i <= 27; i++) {
 						findAllBucketsForAge(i);
-
 						countPeople2 += countPeople;
 						sum += yearlyIncomeSum;
-						if (counter == 9) {
-							str += " In the range of " + i + " - " + (i + counter) + " there are " + countPeople2
-									+ " and average salary is " + sum / countPeople2 + "\r\n";
-							countPeople2 = 0;
-							sum = 0;
-							counter = 0;
-						}
-						if (i == 99) {
-							str += " In the range of " + i + " - " + (i + counter) + " there are " + countPeople2
-									+ " and average salary is " + sum / countPeople2 + "\r\n";
-
-						}
-
-						counter++;
+						countPeople = 0;
+						yearlyIncomeSum = 0;
 					}
+					str += " In the range of " + youngest + " - " + oldest + " there are " + countPeople2
+							+ " and average salary is " + (double)sum / countPeople2 + "\r\n";
+					end = System.currentTimeMillis();	
 					if (str != "") {
 						System.out.println(str);
 					}
+					System.out.println("Time taken = " + (end - start) + " ms");
+					// the initial bucket for each age are stored in main memory
+					// therefore we do not count those I/Os
+					System.out.println("Number of I/O = " + (nIO - (oldest-youngest)));
 					break;
 				}
 			}
